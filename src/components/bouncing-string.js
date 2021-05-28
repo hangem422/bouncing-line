@@ -1,45 +1,98 @@
+// eslint-disable-next-line no-unused-vars
 import Position from '../utils/quadratic/position.js';
+import Curve from '../utils/quadratic/curve.js';
+
+const BOUNCE = 0.92;
+const BOUCNE_MIN = 0.1;
+
+const DETECT_BEFORE = 10;
+const DETECT_AFTER = 300;
 
 class BouncingString {
   /**
-   * @param {{ [prop: string]: Position}} pos
+   * @param {Position} start 시작점
+   * @param {Position} end 끝점
    * @param {string} color
    */
-  constructor(pos, color) {
-    const midX = (pos.pos2.x - pos.pos1.x) / 2 + pos.pos1.x;
-    const midY = (pos.pos2.y - pos.pos1.y) / 2 + pos.pos1.y;
+  constructor(start, end, color) {
+    const mid = start.getMiddleTo(end);
 
-    this.points = [
-      {
-        pos: new Position(pos.pos1.x, pos.pos1.x),
-        opos: new Position(pos.pos1.x, pos.pos1.x),
-        vpos: new Position(0, 0),
-      },
-      {
-        pos: new Position(midX, midY),
-        opos: new Position(midX, midY),
-        vpos: new Position(0, 0),
-      },
-      {
-        pos: new Position(pos.pos2.x, pos.pos2.x),
-        opos: new Position(pos.pos2.x, pos.pos2.x),
-        vpos: new Position(0, 0),
-      },
-    ];
+    this.currnet = Curve.fromPos(start, mid, end);
+    this.origin = Curve.fromPos(start, mid, end);
+    this.variable = new Curve(0, 0, 0, 0, 0, 0);
 
-    this.detect = 10;
+    this.detect = DETECT_BEFORE;
+    this.prevDist = 0;
     this.color = color;
+  }
+
+  isValid(dist) {
+    if (Number.isNaN(dist)) return false;
+    const abs = Math.abs(dist);
+
+    if (this.prevDist * dist < 0) return abs < DETECT_AFTER;
+    return abs < this.detect;
   }
 
   /**
    * @param {CanvasRenderingContext2D} ctx
-   * @param {Position} pos
+   * @param {Position} target 포인터 좌표
    */
-  animate(ctx, pos) {
+  draw(ctx, target) {
+    // String과 Target 사이의 거리를 구합니다.
+    const dist = this.currnet.distanceFromVector(target);
+    const curCon = this.currnet.control;
+    const origCon = this.origin.control;
+    const varCon = this.variable.control;
+
+    if (this.isValid(dist)) {
+      // Traget의 좌표에 기반하여 Current Curve의 Control 포인트를 이동시킵니다.
+      // X 좌표는 기본 위치와 Target의 중간 지점으로 이동합니다.
+      // Y 좌표는 Target과 동일하게 이동합니다.
+      this.detect = DETECT_AFTER;
+
+      const midX = (origCon.x + target.x) / 2;
+      varCon.moveTo(midX - curCon.x, target.y - curCon.y);
+    } else {
+      // Origin Cureve와 Current Curve 간격에 기반하여 Current Curve의 포인트를 이동시킵니다.
+      this.detect = DETECT_BEFORE;
+
+      let x = (varCon.x + origCon.x - curCon.x) * BOUNCE;
+      let y = (varCon.y + origCon.y - curCon.y) * BOUNCE;
+      x = Math.abs(x) > BOUCNE_MIN ? x : 0;
+      y = Math.abs(y) > BOUCNE_MIN ? y : 0;
+
+      varCon.moveTo(x, y);
+    }
+
+    curCon.move(varCon.x, varCon.y);
+    this.prevDist = dist;
+    this.animate(ctx, target);
+  }
+
+  /**
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {Position} target 포인터 좌표
+   */
+  animate(ctx, target) {
     ctx.beginPath();
-    ctx.fillStyle = this.color;
-    ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2, false);
+    ctx.fillStyle = '#ff00ff';
+    ctx.arc(target.x, target.y, 20, 0, Math.PI * 2, false);
     ctx.fill();
+
+    ctx.beginPath();
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 4;
+
+    const { start, control, end } = this.currnet;
+    const sc = start.getMiddleTo(control);
+    const ce = control.getMiddleTo(end);
+
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(sc.x, sc.y);
+    ctx.quadraticCurveTo(control.x, control.y, ce.x, ce.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
   }
 }
 

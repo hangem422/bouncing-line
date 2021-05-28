@@ -1,6 +1,14 @@
 import Position from './utils/quadratic/position.js';
 import BouncingString from './components/bouncing-string.js';
 
+const INVISIBLE_X = NaN;
+const INVISIBLE_Y = NaN;
+
+const PADDING_RIGHT = 50;
+const PADDING_LEFT = 50;
+
+const LINE_COLOR = '#ff5038';
+
 class App {
   constructor() {
     this.canvas = document.createElement('canvas');
@@ -8,7 +16,7 @@ class App {
     this.pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
 
     this.strings = [];
-    this.movePos = new Position(-5000, -5000);
+    this.movePos = new Position(INVISIBLE_X, INVISIBLE_Y);
     this.moveFunc = this.onMove.bind(this);
 
     window.addEventListener('resize', this.resize.bind(this), false);
@@ -31,15 +39,11 @@ class App {
     this.canvas.height = this.stageHeight * this.pixelRatio;
     this.ctx.scale(this.pixelRatio, this.pixelRatio);
 
-    this.strings = [
-      new BouncingString(
-        {
-          pos1: new Position(50, this.stageHeight / 2),
-          pos2: new Position(this.stageWidth - 50, this.stageHeight / 2),
-        },
-        '#ff5038',
-      ),
-    ];
+    const y = this.stageHeight / 2;
+    const start = new Position(PADDING_LEFT, y);
+    const end = new Position(this.stageWidth - PADDING_RIGHT, y);
+
+    this.strings = [new BouncingString(start, end, LINE_COLOR)];
   }
 
   animate() {
@@ -47,9 +51,8 @@ class App {
 
     this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
 
-    this.strings.forEach((string) => {
-      string.animate(this.ctx, this.movePos);
-    });
+    const target = this.movePos.clone();
+    this.strings.forEach((string) => string.draw(this.ctx, target));
   }
 
   onDown(e) {
@@ -63,7 +66,7 @@ class App {
 
   onUp() {
     document.removeEventListener('pointermove', this.moveFunc, false);
-    this.movePos.moveTo(-5000, -5000);
+    this.movePos.moveTo(INVISIBLE_X, INVISIBLE_Y);
   }
 }
 
