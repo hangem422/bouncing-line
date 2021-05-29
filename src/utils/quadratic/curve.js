@@ -25,6 +25,9 @@ class Curve extends Vector {
     return new Curve(start.x, start.y, control.x, control.y, end.x, end.y);
   }
 
+  /**
+   * @description 객체를 복제합니다.
+   */
   clone() {
     return Curve.fromPos(this.start, this.control, this.end);
   }

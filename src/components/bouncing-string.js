@@ -3,7 +3,7 @@ import Position from '../utils/quadratic/position.js';
 import Curve from '../utils/quadratic/curve.js';
 
 const BOUNCE = 0.92;
-const BOUCNE_MIN = 0.1;
+const BOUCNE_MIN = 0.01;
 
 const DETECT_BEFORE = 10;
 const DETECT_AFTER = 300;
@@ -26,6 +26,43 @@ class BouncingString {
     this.color = color;
   }
 
+  /**
+   * @param {Position} start 시작점
+   * @param {Position} end 끝점
+   */
+  relocation(start, end) {
+    const mid = start.getMiddleTo(end);
+
+    const startX = start.x - this.origin.start.x;
+    const startY = start.y - this.origin.start.y;
+    const controlX = mid.x - this.origin.control.x;
+    const controlY = mid.y - this.origin.control.y;
+    const endX = end.x - this.origin.end.x;
+    const endY = end.y - this.origin.end.y;
+
+    this.currnet.start.move(startX, startY);
+    this.currnet.control.move(controlX, controlY);
+    this.currnet.end.move(endX, endY);
+    this.origin.start.move(startX, startY);
+    this.origin.control.move(controlX, controlY);
+    this.origin.end.move(endX, endY);
+    this.variable.control.move(controlX, controlY);
+  }
+
+  /**
+   * @description 초기화합니다.
+   */
+  init() {
+    const { x, y } = this.origin.control;
+    this.currnet.control.moveTo(x, y);
+    this.variable.control.moveTo(0, 0);
+  }
+
+  /**
+   * @description 줄 튕김에 영향을 받는 거리인지 검증합니다.
+   * @param {number} dist 거리
+   * @returns {boolean}
+   */
   isValid(dist) {
     if (Number.isNaN(dist)) return false;
     const abs = Math.abs(dist);
@@ -57,15 +94,18 @@ class BouncingString {
       // Origin Cureve와 Current Curve 간격에 기반하여 Current Curve의 포인트를 이동시킵니다.
       this.detect = DETECT_BEFORE;
 
-      let x = (varCon.x + origCon.x - curCon.x) * BOUNCE;
-      let y = (varCon.y + origCon.y - curCon.y) * BOUNCE;
-      x = Math.abs(x) > BOUCNE_MIN ? x : 0;
-      y = Math.abs(y) > BOUCNE_MIN ? y : 0;
+      const x = (varCon.x + origCon.x - curCon.x) * BOUNCE;
+      const y = (varCon.y + origCon.y - curCon.y) * BOUNCE;
 
       varCon.moveTo(x, y);
     }
 
-    curCon.move(varCon.x, varCon.y);
+    if (Math.abs(varCon.x) < BOUCNE_MIN && Math.abs(varCon.y) < BOUCNE_MIN) {
+      this.init();
+    } else {
+      curCon.move(varCon.x, varCon.y);
+    }
+
     this.prevDist = dist;
     this.animate(ctx, target);
   }
