@@ -3,7 +3,7 @@ import Position from '../utils/quadratic/position.js';
 import Curve from '../utils/quadratic/curve.js';
 
 const BOUNCE = 0.92;
-const BOUCNE_MIN = 0.01;
+const MOVE_MIN = 0.01;
 
 const DETECT_BEFORE = 10;
 const DETECT_AFTER = 300;
@@ -100,11 +100,11 @@ class BouncingString {
       varCon.moveTo(x, y);
     }
 
-    if (Math.abs(varCon.x) < BOUCNE_MIN && Math.abs(varCon.y) < BOUCNE_MIN) {
-      this.init();
-    } else {
-      curCon.move(varCon.x, varCon.y);
-    }
+    const notMove = Math.abs(varCon.x) + Math.abs(varCon.y) < MOVE_MIN;
+    const notCurve = curCon.getDistanceTo(origCon) < 0;
+
+    if (notMove && notCurve) this.init();
+    else curCon.move(varCon.x, varCon.y);
 
     this.prevDist = dist;
     this.animate(ctx, target);
