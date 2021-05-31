@@ -3,10 +3,10 @@ import Position from '../utils/quadratic/position.js';
 class Ball {
   /**
    * @param {number} radius
-   * @param {number} speed
    * @param {string} color
+   * @param {number} speed
    */
-  constructor(radius, speed, color) {
+  constructor(radius, color, speed = 0) {
     this.radius = radius;
     this.color = color;
     this.pos = new Position(radius, radius);

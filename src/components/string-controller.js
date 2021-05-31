@@ -1,16 +1,27 @@
 import Position from '../utils/quadratic/position.js';
 import BouncingString from './bouncing-string.js';
 
+/**
+ * @description BouncingString Option
+ * @typedef {object} Option
+ * @property {number} bounce 튕김 강도
+ * @property {number} moveMin 최소한의 움직임 감도
+ * @property {number} detectBefore 줄이 포인터를 만나기 전에 민감도
+ * @property {number} detectAfter 줄이 포인터와 접촉한 후 민감도
+ * @property {string} color 색상
+ * @property {number} lienWidth 두꼐
+ */
+
 class StringController {
   /**
    * @param {number} verticalSpacing
    * @param {number} horizontalSpacing
-   * @param {string} color
+   * @param {Option} opts
    */
-  constructor(verticalSpacing, horizontalSpacing, color) {
+  constructor(verticalSpacing, horizontalSpacing, opts) {
     this.vs = verticalSpacing;
     this.hs = horizontalSpacing;
-    this.color = color;
+    this.opts = opts;
 
     this.strings = [];
 
@@ -40,7 +51,7 @@ class StringController {
         newStrings.push(this.strings[prevIndex]);
         prevIndex += 1;
       } else {
-        const string = new BouncingString(start, end, this.color);
+        const string = new BouncingString(start, end, this.opts);
         newStrings.push(string);
       }
     }
