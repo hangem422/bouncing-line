@@ -9,6 +9,14 @@ class Position {
   }
 
   /**
+   * @description 유효한 Position인지 검증합니다.
+   * @returns {boolean}
+   */
+  isValid() {
+    return !Object.is(this.x, NaN) && !Object.is(this.y, NaN);
+  }
+
+  /**
    * @description 객체를 복제합니다.
    */
   clone() {

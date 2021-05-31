@@ -107,19 +107,13 @@ class BouncingString {
     else curCon.move(varCon.x, varCon.y);
 
     this.prevDist = dist;
-    this.animate(ctx, target);
+    this.animate(ctx);
   }
 
   /**
    * @param {CanvasRenderingContext2D} ctx
-   * @param {Position} target 포인터 좌표
    */
-  animate(ctx, target) {
-    ctx.beginPath();
-    ctx.fillStyle = '#ff00ff';
-    ctx.arc(target.x, target.y, 20, 0, Math.PI * 2, false);
-    ctx.fill();
-
+  animate(ctx) {
     ctx.beginPath();
     ctx.strokeStyle = this.color;
     ctx.lineWidth = 4;
